@@ -7,7 +7,7 @@
     "start": "node server.js",
     "doctor": "node doctor.js",
     "desktop": "electron .",
-    "dist:win": "electron-builder --win nsis",
+    "dist:win": "electron-builder --win nsis --publish never"
     "build:win": "npm run check && npm run test:release && npm run dist:win",
     "check": "node --check server.js && node --check desktop/main.js && node --check doctor.js && node --check test-release.js",
     "test:release": "node test-release.js"
