@@ -1,0 +1,173 @@
+<!doctype html><html lang="ta"><head>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0b1220">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="/icon.svg" type="image/svg+xml"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111827"><title>AK MUSIC & VIDEO DOWNLOADER</title><style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#162238;--line:#30415e;--txt:#f4f7ff;--muted:#aab6cc;--accent:#8b7cff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:15px system-ui,"Noto Sans Tamil",sans-serif}header{padding:18px;background:#111c30;border-bottom:1px solid var(--line)}main{max-width:980px;margin:auto;padding:18px}.brand{font-weight:800;font-size:20px}.sub{color:var(--muted);font-size:12px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tabs button,button{background:#3c3477;border:1px solid #7266c6;color:white;padding:10px 14px;border-radius:10px;cursor:pointer}.tabs button{background:var(--panel)}.tabs button.active{background:#3c3477}.panel{display:none;background:var(--panel);border:1px solid var(--line);padding:18px;border-radius:14px;margin-bottom:14px}.panel.active{display:block}h2{font-size:18px;margin:0 0 14px}input,select{width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);background:#0e192b;color:white;margin:7px 0 12px}.row{display:grid;grid-template-columns:1fr auto;gap:8px}.muted{color:var(--muted);font-size:12px}.item{padding:12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.status{white-space:pre-wrap;margin-top:12px;color:#b8e8d4}.warn{color:#ffd58a}.file{font-size:13px}@media(max-width:600px){.row{grid-template-columns:1fr}.row button{width:100%}}</style></head><body>
+<header><div class="brand">🎵 AK MUSIC & VIDEO DOWNLOADER</div><div class="sub">ULTIMATE EDITION · Local media tools · v1.56</div></header><main>
+<div class="tabs"><button class="active" data-tab="search">தேடல்</button><button data-tab="download">பதிவிறக்கம்</button><button data-tab="queue">Download Queue</button><button data-tab="convert">வடிவ மாற்றம்</button><button data-tab="library">சேமித்த கோப்புகள்</button><button data-tab="player">Media Player</button></div>
+<section class="panel active" id="search"><h2>இசை / வீடியோ தேடல்</h2><div class="row"><input id="q" placeholder="பாடல், கலைஞர் அல்லது தலைப்பு"><button id="searchBtn">தேடு</button></div><div class="muted">தற்போது Internet Archive திறந்த பட்டியல் மட்டும். எல்லா இணையதளங்களிலும் தேடாது.</div><div id="results"></div></section>
+<section class="panel" id="download"><h2>நேரடி மீடியா இணைப்பைப் பதிவிறக்கு</h2><label>HTTPS நேரடி கோப்பு இணைப்பு</label><input id="url" placeholder="https://example.org/audio.mp3"><label>கோப்பு பெயர் (விருப்பம்)</label><input id="filename" placeholder="my-media.mp3"><button id="downloadBtn">பதிவிறக்கத்தைத் தொடங்கு</button><div id="downloadStatus" class="status"></div><p class="muted warn">உரிமம் / அனுமதி உள்ள கோப்புகளை மட்டும் பதிவிறக்கவும். தனிப்பட்ட URL, DRM அல்லது தளக் கட்டுப்பாடுகளை இந்த கருவி மீறாது.</p></section>
+
+<section class="panel" id="queue"><h2>பதிவிறக்க வரிசை</h2><div class="muted">ஒரே நேரத்தில் ஒரு பதிவிறக்கம். Pause / Resume ஆதரவு source server-ன் Range ஆதரவைப் பொறுத்தது. சேவையகம் மறுதொடங்கினால் மீதமுள்ள வேலைகள் Resume செய்யலாம்.</div><div id="jobs"></div><button id="refreshJobs">வரிசையைப் புதுப்பி</button> <button id="exportJobsCsv">CSV வரலாறு</button> <button id="exportJobsJson">JSON காப்பு</button></section>
+<section class="panel" id="convert"><h2>ஆடியோ / வீடியோ மாற்றி</h2><input id="mediaFile" type="file" accept="audio/*,video/*" multiple><label>வெளியீட்டு வடிவம்</label><select id="format"><option value="mp3">MP3 Audio</option><option value="wav">WAV Audio</option><option value="flac">FLAC Audio</option><option value="ogg">OGG Audio</option><option value="mp4">MP4 Video (H.264/AAC)</option><option value="webm">WebM Video (VP9/Opus)</option></select><button id="convertBtn">மாற்றி சேமி</button><div id="convertStatus" class="status"></div><p class="muted">உங்கள் சொந்த அல்லது அனுமதி பெற்ற மீடியா கோப்புகளுக்கான உள்ளூர் FFmpeg செயலாக்கம். அதிகபட்ச உள்ளீடு 500 MB.</p></section>
+<section class="panel" id="editor"><h2>மீடியா தகவல் & Trim Editor</h2>
+<label>Library கோப்பைத் தேர்ந்தெடுக்கவும்</label><select id="editFile"><option value="">-- கோப்பைத் தேர்ந்தெடுக்கவும் --</option></select>
+<div class="row"><button id="inspectBtn">கோப்பு தகவல் பார்க்க</button></div><pre id="mediaInfo" class="status">கோப்பு தேர்ந்தெடுக்கப்படவில்லை.</pre>
+<hr style="border-color:var(--line);margin:20px 0"><h3>Audio / Subtitle Track தேர்வு</h3>
+<label>கோப்பில் உள்ள Track</label><select id="trackSelect"><option value="">முதலில் கோப்பு தகவலைப் பார்க்கவும்</option></select>
+<div class="row"><button id="extractAudioBtn">தேர்ந்தெடுத்த Audio Track-ஐ MP3 ஆக பிரி</button><button id="extractSubtitleBtn">தேர்ந்தெடுத்த Subtitle-ஐ SRT ஆக பிரி</button></div><div id="trackStatus" class="status"></div>
+<p class="muted">கோப்பில் உள்ள தனித்தனி Audio / Subtitle Track-களைத் தேர்ந்தெடுத்து பிரித்தெடுக்கலாம். Subtitle extraction-க்கு FFmpeg ஆதரிக்கும் subtitle codec அவசியம்.</p>
+<div class="row"><div style="flex:1"><label>தொடக்க நேரம் (விநாடி)</label><input id="trimStart" type="number" min="0" step="0.1" value="0"></div><div style="flex:1"><label>முடிவு நேரம் (விநாடி)</label><input id="trimEnd" type="number" min="0.1" step="0.1" value="10"></div></div>
+<button id="trimBtn">தேர்ந்தெடுத்த பகுதியை வெட்டி சேமி</button><div id="trimStatus" class="status"></div>
+<hr style="border-color:var(--line);margin:20px 0"><h3>பாடல் / வீடியோ Metadata திருத்தம்</h3>
+<label>Title / தலைப்பு</label><input id="tagTitle" maxlength="200" placeholder="பாடல் அல்லது வீடியோ பெயர்">
+<label>Artist / கலைஞர்</label><input id="tagArtist" maxlength="200" placeholder="கலைஞர் பெயர்">
+<label>Album / ஆல்பம்</label><input id="tagAlbum" maxlength="200" placeholder="ஆல்பம் பெயர்">
+<label>Genre / வகை</label><input id="tagGenre" maxlength="200" placeholder="உதா: Melody, Pop">
+<label>Year / தேதி</label><input id="tagDate" maxlength="200" placeholder="2026">
+<label>Comment / குறிப்பு</label><input id="tagComment" maxlength="200" placeholder="விருப்பக் குறிப்பு">
+<button id="metadataBtn">Metadata சேர்த்து புதிய கோப்பாக சேமி</button><div id="metadataStatus" class="status"></div>
+<hr style="border-color:var(--line);margin:20px 0"><h3>Album Artwork / Cover Image</h3>
+<label>Cover Image (JPG / PNG · அதிகபட்சம் 8 MB)</label><input id="coverImage" type="file" accept="image/jpeg,image/png">
+<button id="artworkBtn">Cover Image சேர்த்து புதிய கோப்பாக சேமி</button><div id="artworkStatus" class="status"></div>
+<p class="muted">தற்போது MP3, M4A, MP4 கோப்புகளுக்கு மட்டும். அசல் கோப்பு மாற்றப்படாது; புதிய கோப்பு உருவாக்கப்படும்.</p>
+<p class="muted">MP3 மற்றும் ஆதரிக்கப்படும் மீடியா வடிவங்களில் metadata மட்டும் மாற்றப்படும். அசல் கோப்பு பாதுகாக்கப்படும்; புதிய கோப்பு உருவாகும்.</p>
+<p class="muted">Trim செயல்பாடு துல்லியமான நேர வெட்டுக்காக மீண்டும் encode செய்கிறது; செயலாக்க நேரம் அதிகமாகலாம். அசல் கோப்பு மாற்றப்படாது.</p>
+<hr style="border-color:var(--line);margin:20px 0"><h3>Audio / Video Merge</h3>
+<label>Merge செய்ய வேண்டிய Library கோப்புகள் (2 முதல் 10 வரை)</label><select id="mergeFiles" multiple size="6" style="min-height:130px"></select>
+<label>Merge வகை</label><select id="mergeKind"><option value="audio">Audio Merge → MP3</option><option value="video">Video Merge → MP4 (Video மட்டும்)</option></select>
+<button id="mergeBtn">தேர்ந்தெடுத்த கோப்புகளை ஒன்றிணை</button><div id="mergeStatus" class="status"></div>
+<p class="muted">ஒரே வகை உள்ளடக்கக் கோப்புகளை மட்டும் தேர்ந்தெடுக்கவும். Video Merge-ல் video stream மட்டும் சேர்க்கப்படும்; audio track தற்போது சேர்க்கப்படாது. Re-encode செய்யப்படுவதால் நேரம் மற்றும் தரவு பயன்பாடு அதிகரிக்கலாம். அசல் கோப்புகள் பாதுகாக்கப்படும்.</p>
+
+</section>
+<section class="panel" id="player"><h2>Audio / Video Player</h2>
+<label>Library கோப்பைத் தேர்ந்தெடுக்கவும்</label><select id="playerFile"><option value="">-- கோப்பைத் தேர்ந்தெடுக்கவும் --</option></select>
+<div class="row"><button id="playBtn">Play</button><button id="stopBtn">Stop</button></div>
+<audio id="audioPlayer" controls style="display:none;width:100%;margin-top:12px"></audio>
+<video id="videoPlayer" controls playsinline style="display:none;width:100%;max-height:420px;background:#000;margin-top:12px"></video>
+<p class="muted">உங்கள் Library-ல் உள்ள audio/video கோப்புகளை நேரடியாக இயக்கலாம். Seek வசதிக்காக HTTP Range streaming ஆதரவு சேர்க்கப்பட்டுள்ளது.</p></section>
+<section class="panel" id="library"><h2>மீடியா Library</h2>
+<div class="row"><input id="libSearch" placeholder="கோப்பு பெயரைத் தேடு"><button id="libSearchBtn">தேடு</button></div>
+<label><input id="favOnly" type="checkbox" style="width:auto"> Favorites மட்டும்</label>
+<div class="row"><button id="refresh">Library புதுப்பி</button><button id="createPlaylistBtn">புதிய Playlist</button><button id="backupBtn">Backup உருவாக்கு</button></div><div id="storageSummary" class="muted" style="margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:10px">சேமிப்பக விவரம் ஏற்றப்படுகிறது…</div><div id="playlistList" class="muted"></div>
+<div class="row"><input id="restoreFile" type="file" accept="application/json"><button id="restoreBtn">Backup Restore</button></div>
+<div id="files"></div></section>
+<div class="muted" id="health">சேவையக நிலை சரிபார்க்கப்படுகிறது…</div></main><script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) { window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {})); }
+const $=id=>document.getElementById(id);
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));});
+async function api(url,opts){const r=await fetch(url,opts);const j=await r.json();if(!r.ok)throw Error(j.error||'பிழை ஏற்பட்டது');return j;}
+async function health(){try{const h=await api('/api/health');$('health').textContent='சேவை இயங்குகிறது · FFmpeg '+(h.ffmpeg?'கிடைக்கிறது':'கிடைக்கவில்லை');}catch(e){$('health').textContent='Backend இணைப்பு இல்லை: '+e.message;}}health();
+$('searchBtn').onclick=async()=>{const q=$('q').value.trim();if(!q)return; $('results').textContent='தேடுகிறது…';try{const j=await api('/api/search?q='+encodeURIComponent(q));$('results').innerHTML='';j.results.forEach(x=>{const d=document.createElement('div');d.className='item';const t=document.createElement('span');t.textContent=(x.title||x.identifier)+' — '+(x.creator||'தெரியவில்லை');const a=document.createElement('a');a.href='https://archive.org/details/'+encodeURIComponent(x.identifier);a.target='_blank';a.rel='noopener';a.textContent='திறக்க';d.append(t,a);$('results').append(d);});if(!j.results.length)$('results').textContent='முடிவுகள் இல்லை.';}catch(e){$('results').textContent=e.message;}};
+$('downloadBtn').onclick=async()=>{const b=$('downloadStatus');b.textContent='வரிசையில் சேர்க்கப்படுகிறது…';try{const j=await api('/api/jobs',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:$('url').value,filename:$('filename').value})});b.textContent='வரிசையில் சேர்க்கப்பட்டது: '+j.job.name+' · Job '+j.job.id;loadJobs();}catch(e){b.textContent='சேர்க்க முடியவில்லை: '+e.message;}};
+$('convertBtn').onclick=async()=>{const files=[...$('mediaFile').files];if(!files.length){$('convertStatus').textContent='முதலில் கோப்புகளைத் தேர்ந்தெடுக்கவும்.';return;}const b=$('convertStatus');let done=[];for(let i=0;i<files.length;i++){const f=files[i];b.textContent=`${i+1}/${files.length} மாற்றம் நடைபெறுகிறது: ${f.name}`;try{const r=await fetch('/api/convert/'+$('format').value,{method:'POST',headers:{'x-file-name':encodeURIComponent(f.name),'content-type':'application/octet-stream'},body:f});const j=await r.json();if(!r.ok)throw Error(j.error);done.push(j.name);}catch(e){done.push(f.name+' — பிழை: '+e.message);}}b.textContent='Batch முடிந்தது:\n'+done.join('\n');loadFiles();};
+async function loadStorage(){
+ try{
+  const x=await api('/api/storage'),fmt=n=>(n/1073741824).toFixed(2)+' GB';
+  $('storageSummary').textContent='சாதன சேமிப்பகம்: '+fmt(x.freeBytes)+' காலி / '+fmt(x.totalBytes)+' மொத்தம் · Library: '+x.libraryCount+' கோப்புகள், '+(x.libraryBytes/1048576).toFixed(1)+' MB · Downloads: '+(x.downloadBytes/1048576).toFixed(1)+' MB';
+ }catch(e){$('storageSummary').textContent='சேமிப்பக விவரம் கிடைக்கவில்லை: '+e.message;}
+}
+async function loadFiles(){
+ try{
+  const q=encodeURIComponent($('libSearch')?.value||'');
+  const fav=$('favOnly')?.checked?'1':'0';
+  const j=await api('/api/library?q='+q+'&favorites='+fav);loadStorage();$('files').innerHTML='';const sel=$('editFile');const keep=sel.value;sel.innerHTML='<option value="">-- கோப்பைத் தேர்ந்தெடுக்கவும் --</option>';const ps=$('playerFile');const pkeep=ps.value;ps.innerHTML='<option value="">-- கோப்பைத் தேர்ந்தெடுக்கவும் --</option>';const ms=$('mergeFiles');const mkeep=[...ms.selectedOptions].map(o=>o.value);ms.innerHTML='';j.items.forEach(x=>{const o=document.createElement('option');o.value=x.filename;o.textContent=x.filename;sel.append(o);const po=document.createElement('option');po.value=x.filename;po.textContent=x.filename;ps.append(po);const mo=document.createElement('option');mo.value=x.filename;mo.textContent=x.filename;mo.selected=mkeep.includes(x.filename);ms.append(mo);});if(keep)sel.value=keep;if(pkeep)ps.value=pkeep;
+  j.items.forEach(f=>{
+   const d=document.createElement('div');d.className='item';
+   const s=document.createElement('span');s.className='file';
+   s.textContent=f.filename+' · '+(f.size/1048576).toFixed(2)+' MB · '+f.format+(f.favorite?' · ★':'');
+   const a=document.createElement('a');a.href='/files/'+encodeURIComponent(f.filename);a.textContent='திற / சேமி';
+   const favBtn=document.createElement('button');favBtn.textContent=f.favorite?'★ நீக்கு':'☆ Favorite';
+   favBtn.onclick=async()=>{await api('/api/library/'+encodeURIComponent(f.filename),{method:'POST'});loadFiles();};
+   const plBtn=document.createElement('button');plBtn.textContent='+ Playlist';plBtn.onclick=()=>addToPlaylist(f.filename);
+   const delBtn=document.createElement('button');delBtn.textContent='நீக்கு';delBtn.style.background='#7b3038';delBtn.onclick=async()=>{if(!confirm('இந்தக் கோப்பை நிரந்தரமாக நீக்கவா? Playlist-களிலிருந்தும் நீக்கப்படும்.'))return;try{await api('/api/library/'+encodeURIComponent(f.filename),{method:'DELETE'});loadFiles();refreshPlaylists();}catch(e){alert('நீக்க முடியவில்லை: '+e.message);}};
+   d.append(s,a,favBtn,plBtn,delBtn);$('files').append(d);
+  });
+  if(!j.items.length)$('files').textContent='Library-ல் கோப்புகள் இல்லை.';
+ }catch(e){$('files').textContent=e.message;}
+}
+async function refreshPlaylists(){
+ try{const j=await api('/api/playlists'),host=$('playlistList');host.innerHTML='';
+  if(!j.playlists.length){host.textContent='Playlist இல்லை.';return;}
+  j.playlists.forEach(p=>{const card=document.createElement('div');card.className='file';card.style.marginTop='8px';
+   const title=document.createElement('strong');title.textContent=p.name+' ('+p.item_count+')';const actions=document.createElement('div');actions.className='row';
+   const view=document.createElement('button');view.textContent='பாடல்கள்';view.onclick=async()=>{try{const d=await api('/api/playlists/'+p.id+'/items');alert(d.playlist.name+'\n'+(d.items.map((x,i)=>(i+1)+'. '+x.filename).join('\n')||'பாடல்கள் இல்லை.'));}catch(e){alert(e.message);}};
+   const order=document.createElement('button');order.textContent='பாடல் வரிசை மாற்று';order.onclick=async()=>{
+    try{
+     const d=await api('/api/playlists/'+p.id+'/items');let names=d.items.map(x=>x.filename);
+     const overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:#000b;z-index:9999;display:grid;place-items:center;padding:16px';
+     const box=document.createElement('div');box.style.cssText='background:var(--panel,#202634);color:inherit;border:1px solid #667;border-radius:14px;padding:16px;width:min(560px,100%);max-height:85vh;overflow:auto';
+     const heading=document.createElement('h3');heading.textContent='பாடல் வரிசை – '+p.name;box.append(heading);
+     const hint=document.createElement('p');hint.textContent='மேல் / கீழ் பொத்தான்களைப் பயன்படுத்தி வரிசையை மாற்றுங்கள்.';box.append(hint);
+     const list=document.createElement('div');box.append(list);
+     const render=()=>{list.innerHTML='';names.forEach((name,index)=>{
+      const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px;border-bottom:1px solid #6675';
+      const label=document.createElement('span');label.textContent=(index+1)+'. '+name;label.style.cssText='flex:1;overflow-wrap:anywhere';
+      const up=document.createElement('button');up.textContent='↑';up.disabled=index===0;up.setAttribute('aria-label','மேலே நகர்த்து');up.onclick=()=>{[names[index-1],names[index]]=[names[index],names[index-1]];render();};
+      const down=document.createElement('button');down.textContent='↓';down.disabled=index===names.length-1;down.setAttribute('aria-label','கீழே நகர்த்து');down.onclick=()=>{[names[index+1],names[index]]=[names[index],names[index+1]];render();};
+      row.append(label,up,down);list.append(row);
+     });};
+     render();
+     const footer=document.createElement('div');footer.style.cssText='display:flex;gap:8px;justify-content:flex-end;margin-top:14px';
+     const cancel=document.createElement('button');cancel.textContent='ரத்து';cancel.onclick=()=>overlay.remove();
+     const save=document.createElement('button');save.textContent='வரிசையைச் சேமி';save.onclick=async()=>{save.disabled=true;try{await api('/api/playlists/'+p.id+'/reorder',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({filenames:names})});overlay.remove();refreshPlaylists();alert('பாடல் வரிசை சேமிக்கப்பட்டது.');}catch(e){save.disabled=false;alert('சேமிக்க முடியவில்லை: '+e.message);}};
+     footer.append(cancel,save);box.append(footer);overlay.append(box);document.body.append(overlay);
+    }catch(e){alert('பாடல் பட்டியலைப் பெற முடியவில்லை: '+e.message);}
+   };
+   const rename=document.createElement('button');rename.textContent='பெயர் மாற்று';rename.onclick=async()=>{const name=prompt('புதிய Playlist பெயர்:',p.name);if(!name||!name.trim())return;try{await api('/api/playlists/'+p.id,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({name})});refreshPlaylists();}catch(e){alert('பெயர் மாற்ற முடியவில்லை: '+e.message);}};
+   const importBtn=document.createElement('button');importBtn.textContent='M3U Import';importBtn.onclick=()=>{const picker=document.createElement('input');picker.type='file';picker.accept='.m3u,audio/x-mpegurl';picker.onchange=async()=>{const file=picker.files&&picker.files[0];if(!file)return;try{const content=await file.text();const result=await api('/api/playlists/'+p.id+'/import-m3u',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({content})});alert('சேர்க்கப்பட்ட பாடல்கள்: '+result.imported+'\nதவிர்க்கப்பட்டவை: '+result.skipped);refreshPlaylists();}catch(e){alert('Import தோல்வி: '+e.message);}};picker.click();};
+   const exportBtn=document.createElement('button');exportBtn.textContent='M3U Export';exportBtn.onclick=async()=>{try{const r=await fetch('/api/playlists/'+p.id+'/export.m3u');if(!r.ok)throw Error('Export தோல்வியடைந்தது');const blob=await r.blob();const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=p.name.replace(/[^\\p{L}\\p{N}._ -]/gu,'_')+'.m3u';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){alert(e.message);}};const del=document.createElement('button');del.textContent='Playlist நீக்கு';del.style.background='#7b3038';del.onclick=async()=>{if(!confirm('இந்த Playlist-ஐ மட்டும் நீக்கவா? அசல் பாடல் கோப்புகள் நீக்கப்படாது.'))return;try{await api('/api/playlists/'+p.id,{method:'DELETE'});refreshPlaylists();}catch(e){alert(e.message);}};
+   actions.append(view,order,rename,importBtn,exportBtn,del);card.append(title,actions);host.append(card);
+  });
+ }catch(e){$('playlistList').textContent='Playlist பட்டியலைப் பெற முடியவில்லை: '+e.message;}
+}
+$('createPlaylistBtn').onclick=async()=>{const name=prompt('Playlist பெயர்:');if(!name)return;try{await api('/api/playlists',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name})});refreshPlaylists();}catch(e){alert(e.message);}};
+async function addToPlaylist(filename){try{const j=await api('/api/playlists');if(!j.playlists.length){alert('முதலில் புதிய Playlist உருவாக்கவும்.');return;}const names=j.playlists.map(p=>p.name+' [ID '+p.id+']').join('\\n');const choice=prompt('Playlist ID உள்ளிடவும்:\\n'+names);if(!choice)return;const id=Number(choice);await api('/api/playlists/'+id+'/items',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({filename})});refreshPlaylists();}catch(e){alert(e.message);}}
+$('libSearchBtn').onclick=loadFiles;$('favOnly').onchange=loadFiles;
+$('backupBtn').onclick=async()=>{try{const b=await api('/api/backup',{method:'POST'});const blob=new Blob([JSON.stringify(b,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='AK_Downloader_Backup.json';a.click();URL.revokeObjectURL(a.href);}catch(e){alert(e.message);}};
+$('restoreBtn').onclick=async()=>{const f=$('restoreFile').files[0];if(!f){alert('Backup JSON கோப்பைத் தேர்ந்தெடுக்கவும்');return;}try{const b=JSON.parse(await f.text());const r=await api('/api/restore',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});alert('Restore முடிந்தது · Library '+r.restoredLibrary+' · Jobs '+r.restoredJobs);loadFiles();loadJobs();}catch(e){alert('Restore தோல்வி: '+e.message);}};
+
+function playSelected(){const f=$('playerFile').value;if(!f){alert('முதலில் கோப்பைத் தேர்ந்தெடுக்கவும்');return;}const ext=f.split('.').pop().toLowerCase();const video=['mp4','m4v','mov','webm'].includes(ext);const el=$(video?'videoPlayer':'audioPlayer'),other=$(video?'audioPlayer':'videoPlayer');other.pause();other.removeAttribute('src');other.load();el.style.display='block';el.src='/stream/'+encodeURIComponent(f);el.load();el.play().catch(e=>alert('இந்த வடிவத்தை browser இயக்க முடியவில்லை: '+e.message));} $('playBtn').onclick=playSelected;$('stopBtn').onclick=()=>{['audioPlayer','videoPlayer'].forEach(id=>{const e=$(id);e.pause();e.removeAttribute('src');e.load();e.style.display='none';});};
+let inspectedTracks=[]; $('inspectBtn').onclick=async()=>{const f=$('editFile').value;if(!f){$('mediaInfo').textContent='முதலில் Library கோப்பைத் தேர்ந்தெடுக்கவும்.';return;}try{const x=await api('/api/media-info?file='+encodeURIComponent(f));inspectedTracks=x.streams||[];$('mediaInfo').textContent=JSON.stringify(x,null,2);const ts=$('trackSelect');ts.innerHTML='';inspectedTracks.filter(t=>['audio','subtitle'].includes(t.type)).forEach(t=>{const o=document.createElement('option');o.value=t.index;o.dataset.kind=t.type;o.textContent='#'+t.index+' · '+t.type+' · '+(t.language||'மொழி குறிப்பிடப்படவில்லை')+' · '+t.codec+(t.title?' · '+t.title:'');ts.append(o);});if(!ts.options.length)ts.innerHTML='<option value="">Audio / Subtitle Track இல்லை</option>';if(x.duration)$('trimEnd').value=Math.min(10,x.duration).toFixed(1);}catch(e){$('mediaInfo').textContent=e.message;}};
+async function extractTrack(kind){const filename=$('editFile').value,selected=$('trackSelect').selectedOptions[0];if(!filename||!selected||selected.value===''){$('trackStatus').textContent='முதலில் கோப்பு தகவலைப் பார்த்து Track தேர்ந்தெடுக்கவும்.';return;}if(selected.dataset.kind!==kind){$('trackStatus').textContent=kind==='audio'?'Audio Track ஒன்றைத் தேர்ந்தெடுக்கவும்.':'Subtitle Track ஒன்றைத் தேர்ந்தெடுக்கவும்.';return;}$('trackStatus').textContent='Track பிரித்தெடுக்கப்படுகிறது…';try{const x=await api('/api/extract-track',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({filename,streamIndex:Number(selected.value),kind})});$('trackStatus').textContent='வெற்றி: '+x.name+' · '+x.note;loadFiles();}catch(e){$('trackStatus').textContent='பிழை: '+e.message;}}
+$('extractAudioBtn').onclick=()=>extractTrack('audio');$('extractSubtitleBtn').onclick=()=>extractTrack('subtitle');
+$('metadataBtn').onclick=async()=>{const filename=$('editFile').value;if(!filename){$('metadataStatus').textContent='முதலில் Library கோப்பைத் தேர்ந்தெடுக்கவும்.';return;}const body={filename,title:$('tagTitle').value,artist:$('tagArtist').value,album:$('tagAlbum').value,genre:$('tagGenre').value,date:$('tagDate').value,comment:$('tagComment').value};$('metadataStatus').textContent='Metadata எழுதப்படுகிறது…';try{const x=await api('/api/metadata',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});$('metadataStatus').textContent='வெற்றி: '+x.name+' · '+x.note;loadFiles();}catch(e){$('metadataStatus').textContent='பிழை: '+e.message;}};
+$('artworkBtn').onclick=async()=>{const filename=$('editFile').value,file=$('coverImage').files[0];if(!filename){$('artworkStatus').textContent='முதலில் Library கோப்பைத் தேர்ந்தெடுக்கவும்.';return;}if(!file){$('artworkStatus').textContent='JPG அல்லது PNG Cover Image தேர்ந்தெடுக்கவும்.';return;}if(file.size>8*1024*1024){$('artworkStatus').textContent='பட அளவு 8 MB-க்குள் இருக்க வேண்டும்.';return;}const reader=new FileReader();reader.onload=async()=>{ $('artworkStatus').textContent='Cover Image சேர்க்கப்படுகிறது…';try{const x=await api('/api/artwork',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({filename,mime:file.type,data:reader.result})});$('artworkStatus').textContent='வெற்றி: '+x.name+' · '+x.note;loadFiles();}catch(e){$('artworkStatus').textContent='பிழை: '+e.message;}};reader.onerror=()=>{$('artworkStatus').textContent='படத்தை வாசிக்க முடியவில்லை.';};reader.readAsDataURL(file);};
+$('mergeBtn').onclick=async()=>{const filenames=[...$('mergeFiles').selectedOptions].map(o=>o.value);if(filenames.length<2){$('mergeStatus').textContent='குறைந்தது 2 கோப்புகளைத் தேர்ந்தெடுக்கவும்.';return;}$('mergeStatus').textContent='Merge நடைபெறுகிறது…';try{const x=await api('/api/merge',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({filenames,kind:$('mergeKind').value})});$('mergeStatus').textContent='வெற்றி: '+x.name+' · '+x.inputs+' கோப்புகள் ஒன்றிணைக்கப்பட்டன';loadFiles();}catch(e){$('mergeStatus').textContent='பிழை: '+e.message;}};
+$('trimBtn').onclick=async()=>{const filename=$('editFile').value;if(!filename){$('trimStatus').textContent='முதலில் கோப்பைத் தேர்ந்தெடுக்கவும்.';return;}$('trimStatus').textContent='வெட்டுதல் நடைபெறுகிறது…';try{const x=await api('/api/trim',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({filename,start:$('trimStart').value,end:$('trimEnd').value})});$('trimStatus').textContent='வெற்றி: '+x.name+' · '+x.duration+' வினாடிகள்';loadFiles();}catch(e){$('trimStatus').textContent='பிழை: '+e.message;}};
+
+
+function fmtBytes(n){return n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(2)+' MB';}
+async function jobAction(id,action){try{await api('/api/jobs/'+encodeURIComponent(id)+'/'+action,{method:'POST'});loadJobs();}catch(e){alert(e.message);}}
+async function loadJobs(){
+ try{
+  const j=await api('/api/jobs');const host=$('jobs');host.innerHTML='';
+  j.jobs.forEach(x=>{
+   const d=document.createElement('div');d.className='item';
+   const left=document.createElement('div');left.style.flex='1 1 230px';
+   const title=document.createElement('div');title.textContent=x.name+' · '+x.status.toUpperCase();
+   const detail=document.createElement('div');detail.className='muted';
+   const pct=x.total?Math.min(100,x.bytes/x.total*100):0;
+   detail.textContent=fmtBytes(x.bytes)+(x.total?' / '+fmtBytes(x.total)+' · '+pct.toFixed(1)+'%':'')+(x.speed?' · '+fmtBytes(x.speed)+'/s':'')+(x.error?' · '+x.error:'');
+   const bar=document.createElement('progress');bar.max=100;bar.value=pct;bar.style.width='100%';
+   left.append(title,detail,bar);
+   const actions=document.createElement('div');
+   const add=(label,act)=>{const b=document.createElement('button');b.textContent=label;b.style.margin='3px';b.onclick=()=>jobAction(x.id,act);actions.append(b);};
+   if(x.status==='downloading'||x.status==='queued')add('Pause','pause');
+   if(x.status==='paused')add('Resume','resume');
+   if(x.status==='failed'||x.status==='cancelled')add('Retry','retry');
+   if(!['completed','cancelled'].includes(x.status))add('Cancel','cancel');
+   if(x.status==='completed'){const a=document.createElement('a');a.href='/files/'+encodeURIComponent(x.id+'_'+x.name);a.textContent='கோப்பைப் பெறு';actions.append(a);}
+   d.append(left,actions);host.append(d);
+  });
+  if(!j.jobs.length)host.textContent='வரிசை காலியாக உள்ளது.';
+ }catch(e){$('jobs').textContent=e.message;}
+}
+$('refreshJobs').onclick=loadJobs;
+function downloadJobHistory(format){const a=document.createElement('a');a.href='/api/jobs/export?format='+format;a.download=format==='csv'?'AK_Download_History.csv':'AK_Download_History.json';document.body.append(a);a.click();a.remove();}
+$('exportJobsCsv').onclick=()=>downloadJobHistory('csv');$('exportJobsJson').onclick=()=>downloadJobHistory('json');
+$('refresh').onclick=loadFiles;loadFiles();loadJobs();refreshPlaylists();setInterval(loadJobs,1500);
+
+</script></body></html>

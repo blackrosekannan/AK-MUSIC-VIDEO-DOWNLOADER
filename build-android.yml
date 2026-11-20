@@ -1,0 +1,78 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run source and release tests
+        run: |
+          node --check server.js
+          node --check desktop/main.js
+          node --check doctor.js
+          node --check test-release.js
+          node test-release.js
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build debug APK
+        working-directory: android
+        run: gradle --no-daemon --stacktrace clean assembleDebug
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          sha256sum "$APK" > "$APK.sha256"
+          sha256sum -c "$APK.sha256"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          test -n "$AAPT"
+          BADGING="$($AAPT dump badging "$APK")"
+          echo "$BADGING" | grep -F "package: name='in.ak.downloader' versionCode='156' versionName='1.56.0'"
+          echo "APK_PATH=$APK" >> "$GITHUB_STEP_SUMMARY"
+          echo "SHA256: $(cut -d ' ' -f1 "$APK.sha256")" >> "$GITHUB_STEP_SUMMARY"
+          ls -lh "$APK" "$APK.sha256"
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AK-MUSIC-VIDEO-DOWNLOADER-Android-APK-V1.56
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/debug/app-debug.apk.sha256
+          if-no-files-found: error
+          retention-days: 30

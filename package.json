@@ -1,0 +1,69 @@
+{
+  "name": "ak-music-video-downloader",
+  "version": "1.56.0",
+  "private": true,
+  "description": "Cross-platform media downloader with Windows desktop, Android WebView client, PWA, SQLite and FFmpeg",
+  "scripts": {
+    "start": "node server.js",
+    "doctor": "node doctor.js",
+    "desktop": "electron .",
+    "dist:win": "electron-builder --win nsis",
+    "build:win": "npm run check && npm run test:release && npm run dist:win",
+    "check": "node --check server.js && node --check desktop/main.js && node --check doctor.js && node --check test-release.js",
+    "test:release": "node test-release.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "main": "desktop/main.js",
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "in.ak.downloader.desktop",
+    "productName": "AK MUSIC & VIDEO DOWNLOADER",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "desktop/**/*",
+      "server.js",
+      "doctor.js",
+      "public/**/*",
+      "package.json",
+      "README_TAMIL.txt",
+      "icon.ico"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "AK-MUSIC-VIDEO-DOWNLOADER-Setup-${version}.${ext}",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "asarUnpack": [
+      "server.js",
+      "doctor.js",
+      "node_modules/**"
+    ]
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "ffprobe-static": "^3.1.0"
+  }
+}

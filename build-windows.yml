@@ -1,0 +1,62 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  windows-installer:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Check source syntax
+        run: npm run check
+
+      - name: Run release integration tests
+        run: npm run test:release
+
+      - name: Build Windows x64 NSIS installer
+        run: npm run dist:win
+
+      - name: Verify installer and create SHA-256 checksum
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem -Path dist -Filter '*.exe' -File | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer EXE was not created.' }
+          $hash = (Get-FileHash -Path $installer.FullName -Algorithm SHA256).Hash
+          "$hash  $($installer.Name)" | Set-Content -Path "$($installer.FullName).sha256" -Encoding ascii
+          Write-Host "Verified installer: $($installer.FullName)"
+          Write-Host "SHA256: $hash"
+
+      - name: Upload Windows installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AK-MUSIC-VIDEO-DOWNLOADER-Windows-Installer-V1.56
+          path: |
+            dist/*.exe
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 30
