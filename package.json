@@ -1,13 +1,13 @@
 {
   "name": "ak-music-video-downloader",
-  "version": "1.56.0",
+  "version": "1.58.0",
   "private": true,
   "description": "Cross-platform media downloader with Windows desktop, Android WebView client, PWA, SQLite and FFmpeg",
   "scripts": {
     "start": "node server.js",
     "doctor": "node doctor.js",
     "desktop": "electron .",
-    "dist:win": "electron-builder --win nsis --publish never",
+    "dist:win": "electron-builder --win nsis",
     "build:win": "npm run check && npm run test:release && npm run dist:win",
     "check": "node --check server.js && node --check desktop/main.js && node --check doctor.js && node --check test-release.js",
     "test:release": "node test-release.js"
@@ -31,6 +31,7 @@
       "desktop/**/*",
       "server.js",
       "doctor.js",
+      "package.json",
       "public/**/*",
       "package.json",
       "README_TAMIL.txt",
@@ -59,6 +60,7 @@
     "asarUnpack": [
       "server.js",
       "doctor.js",
+      "package.json",
       "node_modules/**"
     ]
   },
