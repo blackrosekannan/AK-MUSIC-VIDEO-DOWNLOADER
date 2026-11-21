@@ -1,6 +1,6 @@
 {
   "name": "ak-music-video-downloader",
-  "version": "1.58.0",
+  "version": "1.56.0"
   "private": true,
   "description": "Cross-platform media downloader with Windows desktop, Android WebView client, PWA, SQLite and FFmpeg",
   "scripts": {
